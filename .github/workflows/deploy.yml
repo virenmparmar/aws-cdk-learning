@@ -1,0 +1,39 @@
+name: Deploy Note App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write    # Enables OIDC authentication
+      contents: read     # Needed to clone the repo
+
+    steps:
+      - name: Deployment Job
+        run: echo "Starting deployment job..."
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::308785150945:role/githubactions
+          aws-region: ca-central-1
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Bootstrap CDK
+        run: npx cdk bootstrap
+
+      - name: Deploy CDK Stack
+        run: npx cdk deploy --require-approval never
+
+      - name: Deployment Completed
+        run: echo "Deployment completed successfully!"

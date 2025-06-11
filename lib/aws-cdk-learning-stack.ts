@@ -20,13 +20,13 @@ export class AwsCdkLearningStack extends cdk.Stack {
       },
     });
 
-    // // create a DynamoDB Table  
-    // const notesTable = new dynamodb.Table(this, 'NotesTable', {
-    //   tableName: 'notes-table',
-    //   partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
-    //   sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
-    //   billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-    // });
+    // create a DynamoDB Table  
+    const notesTable = new dynamodb.Table(this, 'NotesTable', {
+      tableName: 'notes-table',
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    });
 
     // const createUpdateNoteSqs = new sqs.Queue(this, 'CreateupdateNoteSqs', {
     //   queueName: 'create-update-note-sqs.fifo',

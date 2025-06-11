@@ -29,7 +29,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
     });
 
     const createUpdateNoteSqs = new sqs.Queue(this, 'CreateupdateNoteSqs', {
-      queueName: 'create-update-note-sqs',
+      queueName: 'create-update-note-sqs.fifo',
       fifo: true,
       contentBasedDeduplication: true,
       visibilityTimeout: cdk.Duration.seconds(30),
@@ -39,7 +39,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
     const createUpdateLambda = new lambda.Function(this, 'CreateUpdateNoteLambda', {
       functionName: 'create-update-note-lambda',
       runtime: lambda.Runtime.NODEJS_22_X,
-      code: lambda.Code.fromAsset('src/createUpdateLambda/index.js'),
+      code: lambda.Code.fromAsset('src/createUpdateLambda'),
       handler: 'index.handler',
       environment: {
         NOTES_TABLE_NAME: notesTable.tableName,
@@ -48,7 +48,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
     });
 
     createUpdateLambda.addEventSource(new eventSources.SqsEventSource(createUpdateNoteSqs));
-    
+
     // Roles and permissions
     createUpdateNoteSqs.grantSendMessages(createUpdateLambda);
     notesTable.grantReadWriteData(createUpdateLambda);
@@ -57,14 +57,14 @@ export class AwsCdkLearningStack extends cdk.Stack {
     const viewNotesDataSource = api.addDynamoDbDataSource('viewNotesDataSource', notesTable);
 
     // Define resolvers for the datasource
-    createUpdateNotesDataSource.createResolver('CreateUpdateNoteResolver', {
+    createUpdateNotesDataSource.createResolver('CreateNoteResolver', {
       typeName: 'Mutation',
       fieldName: 'createNote',
       requestMappingTemplate: appsync.MappingTemplate.fromFile('src/resolvers/createNoteRequest.js'),
       responseMappingTemplate: appsync.MappingTemplate.fromFile('src/resolvers/createNoteResponse.js'),
     });
 
-    createUpdateNotesDataSource.createResolver('CreateUpdateNoteResolver', {
+    createUpdateNotesDataSource.createResolver('UpdateNoteResolver', {
       typeName: 'Mutation',
       fieldName: 'updateNote',
       requestMappingTemplate: appsync.MappingTemplate.fromFile('src/resolvers/updateNoteRequest.js'),

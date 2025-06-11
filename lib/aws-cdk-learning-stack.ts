@@ -12,7 +12,9 @@ export class AwsCdkLearningStack extends cdk.Stack {
     // Define an appsync api
     const api = new appsync.GraphqlApi(this, 'MyNoteApp', {
       name: 'my-note-app',
-      schema: appsync.SchemaFile.fromAsset('graphql/schema.graphql'),
+      definition: appsync.Definition.fromSchema(
+        appsync.SchemaFile.fromAsset('graphql/schema.graphql')
+      ),
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: appsync.AuthorizationType.API_KEY,
@@ -27,6 +29,23 @@ export class AwsCdkLearningStack extends cdk.Stack {
       sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
+
+    const getNoteFunction = new appsync.AppsyncFunction(this, 'getNoteResolver', {
+      name: 'get-note-resolver',
+      api,
+      dataSource: api.addDynamoDbDataSource('note-table-ds', notesTable),
+      code: appsync.Code.fromAsset('src/resolvers/getNoteResolver.js'),
+      runtime: appsync.FunctionRuntime.JS_1_0_0,
+    });
+
+    new appsync.Resolver(this, 'pipeline-resolver-get-post', {
+      api,
+      typeName: 'Query',
+      fieldName: 'getNote',
+      code: appsync.Code.fromAsset('src/resolvers/getNoteResolver.js'),
+      runtime: appsync.FunctionRuntime.JS_1_0_0,
+      pipelineConfig: [getNoteFunction],
+    })
 
     // const createUpdateNoteSqs = new sqs.Queue(this, 'CreateupdateNoteSqs', {
     //   queueName: 'create-update-note-sqs.fifo',
@@ -52,7 +71,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
     // // Roles and permissions
     // createUpdateNoteSqs.grantSendMessages(createUpdateLambda);
     // notesTable.grantReadWriteData(createUpdateLambda);
-    
+
     new cdk.CfnOutput(this, 'GraphQLAPIURL', {
       value: api.graphqlUrl,
     });

@@ -20,64 +20,39 @@ export class AwsCdkLearningStack extends cdk.Stack {
       },
     });
 
-    // create a DynamoDB Table  
-    const notesTable = new dynamodb.Table(this, 'NotesTable', {
-      tableName: 'notes-table',
-      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-    });
+    // // create a DynamoDB Table  
+    // const notesTable = new dynamodb.Table(this, 'NotesTable', {
+    //   tableName: 'notes-table',
+    //   partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+    //   sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+    //   billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    // });
 
-    const createUpdateNoteSqs = new sqs.Queue(this, 'CreateupdateNoteSqs', {
-      queueName: 'create-update-note-sqs.fifo',
-      fifo: true,
-      contentBasedDeduplication: true,
-      visibilityTimeout: cdk.Duration.seconds(30),
-      retentionPeriod: cdk.Duration.days(4),
-    })
+    // const createUpdateNoteSqs = new sqs.Queue(this, 'CreateupdateNoteSqs', {
+    //   queueName: 'create-update-note-sqs.fifo',
+    //   fifo: true,
+    //   contentBasedDeduplication: true,
+    //   visibilityTimeout: cdk.Duration.seconds(30),
+    //   retentionPeriod: cdk.Duration.days(4),
+    // })
 
-    const createUpdateLambda = new lambda.Function(this, 'CreateUpdateNoteLambda', {
-      functionName: 'create-update-note-lambda',
-      runtime: lambda.Runtime.NODEJS_22_X,
-      code: lambda.Code.fromAsset('src/createUpdateLambda'),
-      handler: 'index.handler',
-      environment: {
-        NOTES_TABLE_NAME: notesTable.tableName,
-      },
-      timeout: cdk.Duration.seconds(30),
-    });
+    // const createUpdateLambda = new lambda.Function(this, 'CreateUpdateNoteLambda', {
+    //   functionName: 'create-update-note-lambda',
+    //   runtime: lambda.Runtime.NODEJS_22_X,
+    //   code: lambda.Code.fromAsset('src/createUpdateLambda'),
+    //   handler: 'index.handler',
+    //   environment: {
+    //     NOTES_TABLE_NAME: notesTable.tableName,
+    //   },
+    //   timeout: cdk.Duration.seconds(30),
+    // });
 
-    createUpdateLambda.addEventSource(new eventSources.SqsEventSource(createUpdateNoteSqs));
+    // createUpdateLambda.addEventSource(new eventSources.SqsEventSource(createUpdateNoteSqs));
 
-    // Roles and permissions
-    createUpdateNoteSqs.grantSendMessages(createUpdateLambda);
-    notesTable.grantReadWriteData(createUpdateLambda);
-    // define datasource for the appsync api
-    const createUpdateNotesDataSource = api.addLambdaDataSource('createUpdateNotesDataSource', createUpdateLambda);
-    const viewNotesDataSource = api.addDynamoDbDataSource('viewNotesDataSource', notesTable);
-
-    // Define resolvers for the datasource
-    createUpdateNotesDataSource.createResolver('CreateNoteResolver', {
-      typeName: 'Mutation',
-      fieldName: 'createNote',
-      requestMappingTemplate: appsync.MappingTemplate.fromFile('src/resolvers/createNoteRequest.js'),
-      responseMappingTemplate: appsync.MappingTemplate.fromFile('src/resolvers/createNoteResponse.js'),
-    });
-
-    createUpdateNotesDataSource.createResolver('UpdateNoteResolver', {
-      typeName: 'Mutation',
-      fieldName: 'updateNote',
-      requestMappingTemplate: appsync.MappingTemplate.fromFile('src/resolvers/updateNoteRequest.js'),
-      responseMappingTemplate: appsync.MappingTemplate.fromFile('src/resolvers/updateNoteResponse.js'),
-    });
-
-    viewNotesDataSource.createResolver('ViewNotesResolver', {
-      typeName: 'Query',
-      fieldName: 'getNote',
-      requestMappingTemplate: appsync.MappingTemplate.fromFile('src/resolvers/getNoteRequest.js'),
-      responseMappingTemplate: appsync.MappingTemplate.fromFile('src/resolvers/getNoteResponse.js'),
-    });
-
+    // // Roles and permissions
+    // createUpdateNoteSqs.grantSendMessages(createUpdateLambda);
+    // notesTable.grantReadWriteData(createUpdateLambda);
+    
     new cdk.CfnOutput(this, 'GraphQLAPIURL', {
       value: api.graphqlUrl,
     });

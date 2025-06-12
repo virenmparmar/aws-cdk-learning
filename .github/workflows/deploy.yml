@@ -31,7 +31,11 @@ jobs:
       - name: Install dependencies
         run: | 
           rm -rf node_modules package-lock.json
-          npm install
+          timeout 120s npm install
+      
+      - name: Show npm debug log
+        if: failure()
+        run: cat npm-debug.log || echo 'No debug log'
 
       - name: Bootstrap CDK
         run: npx cdk bootstrap

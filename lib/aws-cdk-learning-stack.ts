@@ -30,7 +30,6 @@ export class AwsCdkLearningStack extends cdk.Stack {
     const notesTable = new dynamodb.Table(this, 'NotesTable', {
       tableName: 'notes-table',
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });

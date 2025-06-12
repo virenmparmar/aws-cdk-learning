@@ -28,10 +28,11 @@ export class AwsCdkLearningStack extends cdk.Stack {
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY, 
     });
 
     const getNoteFunction = new appsync.AppsyncFunction(this, 'getNoteResolver', {
-      name: 'get-note-resolver',
+      name: 'getNoteResolver',
       api,
       dataSource: api.addDynamoDbDataSource('note-table-ds', notesTable),
       code: appsync.Code.fromAsset('src/resolvers/getNoteResolver.js'),

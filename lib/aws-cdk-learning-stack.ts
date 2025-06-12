@@ -51,13 +51,13 @@ export class AwsCdkLearningStack extends cdk.Stack {
       pipelineConfig: [getNoteFunction],
     })
 
-    // const createUpdateNoteSqs = new sqs.Queue(this, 'CreateupdateNoteSqs', {
-    //   queueName: 'create-update-note-sqs.fifo',
-    //   fifo: true,
-    //   contentBasedDeduplication: true,
-    //   visibilityTimeout: cdk.Duration.seconds(30),
-    //   retentionPeriod: cdk.Duration.days(4),
-    // })
+    const createUpdateNoteSqs = new sqs.Queue(this, 'CreateupdateNoteSqs', {
+      queueName: 'create-update-note-sqs.fifo',
+      fifo: true,
+      contentBasedDeduplication: true,
+      visibilityTimeout: cdk.Duration.seconds(30),
+      retentionPeriod: cdk.Duration.days(4),
+    })
 
     // const createUpdateLambda = new lambda.Function(this, 'CreateUpdateNoteLambda', {
     //   functionName: 'create-update-note-lambda',
@@ -82,6 +82,10 @@ export class AwsCdkLearningStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'GraphQLAPIKey', {
       value: api.apiKey || '',
+    });
+
+    new cdk.CfnOutput(this, 'SqsQueueURL', {
+      value: createUpdateNoteSqs.queueUrl,
     });
   }
 }

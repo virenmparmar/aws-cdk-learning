@@ -28,7 +28,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
 
     // create a DynamoDB Table  
     const notesTable = new dynamodb.Table(this, 'NotesTable', {
-      tableName: 'notes-table',
+      tableName: 'my-notes-table',
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,

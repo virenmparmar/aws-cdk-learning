@@ -20,6 +20,10 @@ export class AwsCdkLearningStack extends cdk.Stack {
           authorizationType: appsync.AuthorizationType.API_KEY,
         },
       },
+      logConfig: {
+        fieldLogLevel: appsync.FieldLogLevel.ALL,
+        excludeVerboseContent: false, 
+      },
     });
 
     // create a DynamoDB Table  
@@ -28,7 +32,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: cdk.RemovalPolicy.DESTROY, 
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     const getNoteFunction = new appsync.AppsyncFunction(this, 'getNoteResolver', {

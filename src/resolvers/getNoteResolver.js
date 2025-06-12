@@ -14,5 +14,5 @@ export function request(ctx) {
 }
 
 export function response(ctx) {
-  return ctx.result.items;
+  return ctx.result;
 }

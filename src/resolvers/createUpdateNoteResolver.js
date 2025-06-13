@@ -13,7 +13,7 @@ export function request(ctx) {
     message.operation = "CreateNote";
   }
 
-  const encodedMessage = util.urlEncode(message);
+  const encodedMessage = util.urlEncode(JSON.stringify(message));
   return {
     version: "2018-05-29",
     method: "POST",

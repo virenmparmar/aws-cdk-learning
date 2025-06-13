@@ -13,6 +13,7 @@ export function request(ctx) {
   return {
     version: "2018-05-29",
     method: "POST",
+    resourcePath: "/",
     params: {
       headers: {
         "content-type": "application/x-www-form-urlencoded",

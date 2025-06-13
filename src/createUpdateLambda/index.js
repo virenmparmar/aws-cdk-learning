@@ -20,6 +20,7 @@ const createNote = async (messageBody) => {
 
   try {
     await client.send(new PutCommand(params));
+    console.log("Item successfully put in DDB:", ddbObject);
     return { statusCode: 200, body: JSON.stringify({ ddbObject }) };
   } catch (err) {
     console.error("Error putting item in DDB:", err);
@@ -27,7 +28,42 @@ const createNote = async (messageBody) => {
   }
 };
 
+const updateNode = async (messageBody) => {
+  const ddbObject = {
+    title: messageBody.title,
+    content: messageBody.content,
+    updatedAt: new Date().toISOString(),
+  };
+
+  const params = {
+    TableName: process.env.NOTES_TABLE_NAME,
+    Key: { id: messageBody.id },
+    UpdateExpression:
+      "set #title = :title, #content = :content, #updatedAt = :updatedAt",
+    ExpressionAttributeNames: {
+      "#title": "title",
+      "#content": "content",
+      "#updatedAt": "updatedAt",
+    },
+    ExpressionAttributeValues: {
+      ":title": ddbObject.title,
+      ":content": ddbObject.content,
+      ":updatedAt": ddbObject.updatedAt,
+    },
+  };
+
+  try {
+    await client.send(new PutCommand(params));
+    console.log("Item successfully updated in DDB:", ddbObject);
+    return { statusCode: 200, body: JSON.stringify({ ddbObject }) };
+  } catch (err) {
+    console.error("Error updating item in DDB:", err);
+    return { statusCode: 400, error: err.message };
+  }
+};
+
 const handler = async (event, context) => {
+  console.log("Event:", JSON.stringify(event, null, 2));
   const { Records } = event;
 
   if (!Records || Records.length === 0) {
@@ -41,19 +77,15 @@ const handler = async (event, context) => {
 
   for (const record of Records) {
     console.log("Processing record:", record);
-
-    // Here you can add your logic to handle each record
-    // For example, you might want to parse the message body
     const messageBody = JSON.parse(record.body);
     console.log("Message Body:", messageBody);
 
     switch (messageBody.operation) {
       case "CreateNote":
-        // Add your logic to create a note
-        createNote(messageBody);
+        await createNote(messageBody);
         break;
       case "UpdateNote":
-        // Add your logic to update a note
+        await updateNode(messageBody);
         break;
       default:
         return {

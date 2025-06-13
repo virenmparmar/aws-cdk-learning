@@ -23,6 +23,7 @@
     "aws-appsync": "^4.1.10",
     "aws-cdk-lib": "2.199.0",
     "aws-sdk": "^2.1692.0",
+    "cdk-nag": "^2.36.17",
     "constructs": "^10.0.0",
     "uuid": "^11.1.0"
   }

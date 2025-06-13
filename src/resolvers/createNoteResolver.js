@@ -1,3 +1,4 @@
+
 export function request(ctx) {
   const { args } = ctx;
   const message = {
@@ -10,6 +11,8 @@ export function request(ctx) {
   } else {
     message.operation = "CreateNote";
   }
+
+  const encodedMessage = JSON.stringify(message);
   return {
     version: "2018-05-29",
     method: "POST",
@@ -18,9 +21,7 @@ export function request(ctx) {
       headers: {
         "content-type": "application/x-www-form-urlencoded",
       },
-      body: `Action=SendMessage&Version=2012-11-05&MessageBody=${JSON.stringify(
-        message
-      )}`,
+      body: `Action=SendMessage&Version=2012-11-05&MessageBody=${encodedMessage}`,
     },
   };
 }

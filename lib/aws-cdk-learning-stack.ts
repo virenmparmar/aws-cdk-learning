@@ -68,24 +68,33 @@ export class AwsCdkLearningStack extends cdk.Stack {
       },
     });
 
-    const createNoteFunction = new appsync.AppsyncFunction(this, 'createNoteResolver', {
-      name: 'createNoteResolver',
+    const createUpdateNoteFunction = new appsync.AppsyncFunction(this, 'createUpdateNoteResolver', {
+      name: 'createUpdateNoteResolver',
       api,
       dataSource: createUpdateNoteDataSource,
-      code: appsync.Code.fromAsset('src/resolvers/createNoteResolver.js'),
+      code: appsync.Code.fromAsset('src/resolvers/createUpdateNoteResolver.js'),
       runtime: appsync.FunctionRuntime.JS_1_0_0,
     });
 
     createUpdateNoteDataSource.node.addDependency(createUpdateNoteSqs);
     createUpdateNoteSqs.grantSendMessages(createUpdateNoteDataSource.grantPrincipal);
 
-    new appsync.Resolver(this, 'pipeline-resolver-create-update-note', {
+    new appsync.Resolver(this, 'pipeline-resolver-create-note', {
       api,
       typeName: 'Mutation',
       fieldName: 'createNote',
-      code: appsync.Code.fromAsset('src/resolvers/createNoteResolver.js'),
+      code: appsync.Code.fromAsset('src/resolvers/createUpdateNoteResolver.js'),
       runtime: appsync.FunctionRuntime.JS_1_0_0,
-      pipelineConfig: [createNoteFunction],
+      pipelineConfig: [createUpdateNoteFunction],
+    });
+
+    new appsync.Resolver(this, 'pipeline-resolver-update-note', {
+      api,
+      typeName: 'Mutation',
+      fieldName: 'updateNote',
+      code: appsync.Code.fromAsset('src/resolvers/createUpdateNoteResolver.js'),
+      runtime: appsync.FunctionRuntime.JS_1_0_0,
+      pipelineConfig: [createUpdateNoteFunction],
     });
 
     const createUpdateLambda = new NodejsFunction(this, 'CreateUpdateNoteLambda', {

@@ -1,5 +1,9 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { PutCommand, DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import {
+  PutCommand,
+  UpdateCommand,
+  DynamoDBDocumentClient,
+} from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
 
 const client = DynamoDBDocumentClient.from(new DynamoDBClient({}));
@@ -51,9 +55,9 @@ const updateNode = async (messageBody) => {
       ":updatedAt": ddbObject.updatedAt,
     },
   };
-
+  console.log("Update params:", JSON.stringify(params, null, 2));
   try {
-    await client.send(new PutCommand(params));
+    await client.send(new UpdateCommand(params));
     console.log("Item successfully updated in DDB:", ddbObject);
     return { statusCode: 200, body: JSON.stringify({ ddbObject }) };
   } catch (err) {

@@ -98,25 +98,22 @@ export class AwsCdkLearningStack extends cdk.Stack {
       pipelineConfig: [createNoteFunction],
     });
 
+    const createUpdateLambda = new lambda.Function(this, 'CreateUpdateNoteLambda', {
+      functionName: 'create-update-note-lambda',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      code: lambda.Code.fromAsset('src/createUpdateLambda'),
+      handler: 'index.handler',
+      environment: {
+        NOTES_TABLE_NAME: notesTable.tableName,
+      },
+      timeout: cdk.Duration.seconds(30),
+    });
 
+    createUpdateLambda.addEventSource(new eventSources.SqsEventSource(createUpdateNoteSqs));
 
-
-    // const createUpdateLambda = new lambda.Function(this, 'CreateUpdateNoteLambda', {
-    //   functionName: 'create-update-note-lambda',
-    //   runtime: lambda.Runtime.NODEJS_22_X,
-    //   code: lambda.Code.fromAsset('src/createUpdateLambda'),
-    //   handler: 'index.handler',
-    //   environment: {
-    //     NOTES_TABLE_NAME: notesTable.tableName,
-    //   },
-    //   timeout: cdk.Duration.seconds(30),
-    // });
-
-    // createUpdateLambda.addEventSource(new eventSources.SqsEventSource(createUpdateNoteSqs));
-
-    // // // Roles and permissions
-    // createUpdateNoteSqs.grantSendMessages(createUpdateLambda);
-    // notesTable.grantReadWriteData(createUpdateLambda);
+    // Roles and permissions
+    createUpdateNoteSqs.grantSendMessages(createUpdateLambda);
+    notesTable.grantReadWriteData(createUpdateLambda);
 
     new cdk.CfnOutput(this, 'GraphQLAPIURL', {
       value: api.graphqlUrl,

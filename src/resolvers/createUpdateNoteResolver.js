@@ -11,7 +11,7 @@ export function request(ctx) {
     message.operation = "CreateNote";
   }
 
-  const encodedMessage = message;
+  const encodedMessage = JSON.stringify(message);
   return {
     version: "2018-05-29",
     method: "POST",

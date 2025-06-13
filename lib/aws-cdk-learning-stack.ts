@@ -59,6 +59,23 @@ export class AwsCdkLearningStack extends cdk.Stack {
       retentionPeriod: cdk.Duration.days(4),
     })
 
+
+    const createNoteFunction = new appsync.AppsyncFunction(this, 'createNoteResolver', {
+      name: 'createNoteResolver',
+      api,
+      dataSource: api.addHttpDataSource('create-update-note-ds', createUpdateNoteSqs.queueUrl),
+      code: appsync.Code.fromAsset('src/resolvers/createNoteResolver.js'),
+      runtime: appsync.FunctionRuntime.JS_1_0_0,
+    });
+
+    new appsync.Resolver(this, 'pipeline-resolver-create-update-note', {
+      api, 
+      typeName: 'Mutation',
+      fieldName: 'createNote',
+      code: appsync.Code.fromAsset('src/resolvers/createNoteResolver.js'),
+      runtime: appsync.FunctionRuntime.JS_1_0_0,
+      pipelineConfig: [createNoteFunction],
+    })
     // const createUpdateLambda = new lambda.Function(this, 'CreateUpdateNoteLambda', {
     //   functionName: 'create-update-note-lambda',
     //   runtime: lambda.Runtime.NODEJS_22_X,
@@ -72,7 +89,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
 
     // createUpdateLambda.addEventSource(new eventSources.SqsEventSource(createUpdateNoteSqs));
 
-    // // Roles and permissions
+    // // // Roles and permissions
     // createUpdateNoteSqs.grantSendMessages(createUpdateLambda);
     // notesTable.grantReadWriteData(createUpdateLambda);
 

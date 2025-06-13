@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import * as appsync from 'aws-cdk-lib/aws-appsync'
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as eventSources from 'aws-cdk-lib/aws-lambda-event-sources';
 export class AwsCdkLearningStack extends cdk.Stack {
@@ -22,10 +23,13 @@ export class AwsCdkLearningStack extends cdk.Stack {
       },
       logConfig: {
         fieldLogLevel: appsync.FieldLogLevel.ALL,
-        excludeVerboseContent: false, 
+        excludeVerboseContent: false,
       },
     });
 
+    const appsyncRole = new iam.Role(this, 'AppSyncRole', {
+      assumedBy: new iam.ServicePrincipal('appsync.amazonaws.com'),
+    });
     // create a DynamoDB Table  
     const notesTable = new dynamodb.Table(this, 'NotesTable', {
       tableName: 'my-notes-table',
@@ -57,7 +61,12 @@ export class AwsCdkLearningStack extends cdk.Stack {
       contentBasedDeduplication: true,
       visibilityTimeout: cdk.Duration.seconds(30),
       retentionPeriod: cdk.Duration.days(4),
-    })
+    });
+
+    appsyncRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['sqs:SendMessage'],
+      resources: [createUpdateNoteSqs.queueArn],
+    }))
 
 
     const createNoteFunction = new appsync.AppsyncFunction(this, 'createNoteResolver', {
@@ -69,13 +78,17 @@ export class AwsCdkLearningStack extends cdk.Stack {
     });
 
     new appsync.Resolver(this, 'pipeline-resolver-create-update-note', {
-      api, 
+      api,
       typeName: 'Mutation',
       fieldName: 'createNote',
       code: appsync.Code.fromAsset('src/resolvers/createNoteResolver.js'),
       runtime: appsync.FunctionRuntime.JS_1_0_0,
       pipelineConfig: [createNoteFunction],
-    })
+    });
+
+
+
+
     // const createUpdateLambda = new lambda.Function(this, 'CreateUpdateNoteLambda', {
     //   functionName: 'create-update-note-lambda',
     //   runtime: lambda.Runtime.NODEJS_22_X,

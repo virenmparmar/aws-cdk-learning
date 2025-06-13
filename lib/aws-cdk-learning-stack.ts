@@ -3,9 +3,9 @@ import { Construct } from 'constructs';
 import * as appsync from 'aws-cdk-lib/aws-appsync'
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as eventSources from 'aws-cdk-lib/aws-lambda-event-sources';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 export class AwsCdkLearningStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -61,23 +61,13 @@ export class AwsCdkLearningStack extends cdk.Stack {
       retentionPeriod: cdk.Duration.days(4),
     });
 
-    // createUpdateNoteSqs.addToResourcePolicy(new iam.PolicyStatement({
-    //   actions: ['sqs:SendMessage'],
-    //   resources: [createUpdateNoteSqs.queueArn],
-    //   principals: [new iam.ServicePrincipal('appsync.amazonaws.com')],
-    //   conditions: {
-    //     'ArnEquals': {
-    //       'aws:SourceArn': api.arn,
-    //     },
-    //   },
-    // }))
     const createUpdateNoteDataSource = api.addHttpDataSource('create-update-note-ds', createUpdateNoteSqs.queueUrl, {
       authorizationConfig: {
         signingRegion: region,
         signingServiceName: 'sqs',
       },
     });
-    
+
     const createNoteFunction = new appsync.AppsyncFunction(this, 'createNoteResolver', {
       name: 'createNoteResolver',
       api,
@@ -85,7 +75,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
       code: appsync.Code.fromAsset('src/resolvers/createNoteResolver.js'),
       runtime: appsync.FunctionRuntime.JS_1_0_0,
     });
-    
+
     createUpdateNoteDataSource.node.addDependency(createUpdateNoteSqs);
     createUpdateNoteSqs.grantSendMessages(createUpdateNoteDataSource.grantPrincipal);
 
@@ -98,15 +88,19 @@ export class AwsCdkLearningStack extends cdk.Stack {
       pipelineConfig: [createNoteFunction],
     });
 
-    const createUpdateLambda = new lambda.Function(this, 'CreateUpdateNoteLambda', {
+    const createUpdateLambda = new NodejsFunction(this, 'CreateUpdateNoteLambda', {
       functionName: 'create-update-note-lambda',
       runtime: lambda.Runtime.NODEJS_22_X,
-      code: lambda.Code.fromAsset('src/createUpdateLambda'),
-      handler: 'index.handler',
+      entry: 'src/createUpdateLambda/index.js',
+      handler: 'handler',
       environment: {
         NOTES_TABLE_NAME: notesTable.tableName,
       },
       timeout: cdk.Duration.seconds(30),
+      bundling: {
+        minify: false,
+        target: 'node22',
+      }
     });
 
     createUpdateLambda.addEventSource(new eventSources.SqsEventSource(createUpdateNoteSqs));

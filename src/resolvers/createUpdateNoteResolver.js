@@ -11,7 +11,7 @@ export function request(ctx) {
     message.operation = "CreateNote";
   }
 
-  const encodedMessage = JSON.stringify(message);
+  const encodedMessage = util.urlEncode(util.toJson(message));
   return {
     version: "2018-05-29",
     method: "POST",
@@ -20,7 +20,7 @@ export function request(ctx) {
       headers: {
         "content-type": "application/x-www-form-urlencoded",
       },
-      body: `Action=SendMessage&Version=2012-11-05&MessageBody=${encodedMessage}`,
+      body: `Action=SendMessage&Version=2012-11-05&MessageBody=${encodedMessage}&MessageGroupId=default`,
     },
   };
 }

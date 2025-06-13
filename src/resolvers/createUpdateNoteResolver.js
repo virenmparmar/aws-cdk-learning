@@ -1,3 +1,5 @@
+import { util } from "@aws-appsync/utils";
+
 export function request(ctx) {
   const { args } = ctx;
   const message = {
@@ -11,7 +13,7 @@ export function request(ctx) {
     message.operation = "CreateNote";
   }
 
-  const encodedMessage = util.urlEncode(util.toJson(message));
+  const encodedMessage = util.urlEncode(message);
   return {
     version: "2018-05-29",
     method: "POST",

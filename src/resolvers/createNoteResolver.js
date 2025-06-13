@@ -1,3 +1,4 @@
+import { util } from '@aws-appsync/utils';
 
 export function request(ctx) {
   const { args } = ctx;
@@ -12,7 +13,7 @@ export function request(ctx) {
     message.operation = "CreateNote";
   }
 
-  const encodedMessage = JSON.stringify(message);
+   const encodedMessage = util.urlEncode(JSON.stringify(message));
   return {
     version: "2018-05-29",
     method: "POST",
@@ -24,9 +25,9 @@ export function request(ctx) {
       body: `Action=SendMessage&Version=2012-11-05&MessageBody=${encodedMessage}`,
     },
   };
-}
+};
 
 export function response(ctx) {
   console.log("Response from SQS:", ctx.result);
   return {};
-}
+};

@@ -26,10 +26,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
         excludeVerboseContent: false,
       },
     });
-
-    const appsyncRole = new iam.Role(this, 'AppSyncRole', {
-      assumedBy: new iam.ServicePrincipal('appsync.amazonaws.com'),
-    });
+    
     // create a DynamoDB Table  
     const notesTable = new dynamodb.Table(this, 'NotesTable', {
       tableName: 'my-notes-table',
@@ -63,11 +60,16 @@ export class AwsCdkLearningStack extends cdk.Stack {
       retentionPeriod: cdk.Duration.days(4),
     });
 
-    appsyncRole.addToPolicy(new iam.PolicyStatement({
+    createUpdateNoteSqs.addToResourcePolicy(new iam.PolicyStatement({
       actions: ['sqs:SendMessage'],
       resources: [createUpdateNoteSqs.queueArn],
+      principals: [new iam.ServicePrincipal('appsync.amazonaws.com')],
+      conditions: {
+        'ArnEquals': {
+          'aws:SourceArn': api.arn,
+        },
+      },
     }))
-
 
     const createNoteFunction = new appsync.AppsyncFunction(this, 'createNoteResolver', {
       name: 'createNoteResolver',

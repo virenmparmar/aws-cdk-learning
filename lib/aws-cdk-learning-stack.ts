@@ -9,6 +9,7 @@ import * as eventSources from 'aws-cdk-lib/aws-lambda-event-sources';
 export class AwsCdkLearningStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+    const region = cdk.Stack.of(this).region
 
     // Define an appsync api
     const api = new appsync.GraphqlApi(this, 'MyNoteApp', {
@@ -26,7 +27,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
         excludeVerboseContent: false,
       },
     });
-    
+
     // create a DynamoDB Table  
     const notesTable = new dynamodb.Table(this, 'NotesTable', {
       tableName: 'my-notes-table',
@@ -60,24 +61,33 @@ export class AwsCdkLearningStack extends cdk.Stack {
       retentionPeriod: cdk.Duration.days(4),
     });
 
-    createUpdateNoteSqs.addToResourcePolicy(new iam.PolicyStatement({
-      actions: ['sqs:SendMessage'],
-      resources: [createUpdateNoteSqs.queueArn],
-      principals: [new iam.ServicePrincipal('appsync.amazonaws.com')],
-      conditions: {
-        'ArnEquals': {
-          'aws:SourceArn': api.arn,
-        },
+    // createUpdateNoteSqs.addToResourcePolicy(new iam.PolicyStatement({
+    //   actions: ['sqs:SendMessage'],
+    //   resources: [createUpdateNoteSqs.queueArn],
+    //   principals: [new iam.ServicePrincipal('appsync.amazonaws.com')],
+    //   conditions: {
+    //     'ArnEquals': {
+    //       'aws:SourceArn': api.arn,
+    //     },
+    //   },
+    // }))
+    const createUpdateNoteDataSource = api.addHttpDataSource('create-update-note-ds', createUpdateNoteSqs.queueUrl, {
+      authorizationConfig: {
+        signingRegion: region,
+        signingServiceName: 'sqs',
       },
-    }))
-
+    });
+    
     const createNoteFunction = new appsync.AppsyncFunction(this, 'createNoteResolver', {
       name: 'createNoteResolver',
       api,
-      dataSource: api.addHttpDataSource('create-update-note-ds', createUpdateNoteSqs.queueUrl),
+      dataSource: createUpdateNoteDataSource,
       code: appsync.Code.fromAsset('src/resolvers/createNoteResolver.js'),
       runtime: appsync.FunctionRuntime.JS_1_0_0,
     });
+    
+    createUpdateNoteDataSource.node.addDependency(createUpdateNoteSqs);
+    createUpdateNoteSqs.grantSendMessages(createUpdateNoteDataSource.grantPrincipal);
 
     new appsync.Resolver(this, 'pipeline-resolver-create-update-note', {
       api,

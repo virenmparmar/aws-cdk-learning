@@ -33,6 +33,9 @@ jobs:
           rm -rf node_modules package-lock.json
           timeout 600s npm install --verbose
 
+      - name: Bundle resolvers 
+        run: npx esbuild --bundle --target=esnext --platform=node --format=esm --external:@aws-appsync/utils --outdir=src/resolvers/build src/resolvers/*.js --tree-shaking=true --minify-whitespace --minify-identifiers
+
       - name: Bootstrap CDK
         run: npx cdk bootstrap
 

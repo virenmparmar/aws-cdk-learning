@@ -40,7 +40,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
       name: 'getNoteResolver',
       api,
       dataSource: api.addDynamoDbDataSource('note-table-ds', notesTable),
-      code: appsync.Code.fromAsset('src/resolvers/getNoteResolver.js'),
+      code: appsync.Code.fromAsset('src/resolvers/build/getNoteResolver.js'),
       runtime: appsync.FunctionRuntime.JS_1_0_0,
     });
 
@@ -48,7 +48,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
       api,
       typeName: 'Query',
       fieldName: 'getNote',
-      code: appsync.Code.fromAsset('src/resolvers/getNoteResolver.js'),
+      code: appsync.Code.fromAsset('src/resolvers/build/getNoteResolver.js'),
       runtime: appsync.FunctionRuntime.JS_1_0_0,
       pipelineConfig: [getNoteFunction],
     })
@@ -72,7 +72,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
       name: 'createUpdateNoteResolver',
       api,
       dataSource: createUpdateNoteDataSource,
-      code: appsync.Code.fromAsset('src/resolvers/createUpdateNoteResolver.js'),
+      code: appsync.Code.fromAsset('src/resolvers/build/createUpdateNoteResolver.js'),
       runtime: appsync.FunctionRuntime.JS_1_0_0,
     });
 
@@ -83,7 +83,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
       api,
       typeName: 'Mutation',
       fieldName: 'createNote',
-      code: appsync.Code.fromAsset('src/resolvers/createUpdateNoteResolver.js'),
+      code: appsync.Code.fromAsset('src/resolvers/build/createUpdateNoteResolver.js'),
       runtime: appsync.FunctionRuntime.JS_1_0_0,
       pipelineConfig: [createUpdateNoteFunction],
     });
@@ -92,7 +92,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
       api,
       typeName: 'Mutation',
       fieldName: 'updateNote',
-      code: appsync.Code.fromAsset('src/resolvers/createUpdateNoteResolver.js'),
+      code: appsync.Code.fromAsset('src/resolvers/build/createUpdateNoteResolver.js'),
       runtime: appsync.FunctionRuntime.JS_1_0_0,
       pipelineConfig: [createUpdateNoteFunction],
     });

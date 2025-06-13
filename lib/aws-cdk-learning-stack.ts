@@ -79,14 +79,14 @@ export class AwsCdkLearningStack extends cdk.Stack {
     createUpdateNoteDataSource.node.addDependency(createUpdateNoteSqs);
     createUpdateNoteSqs.grantSendMessages(createUpdateNoteDataSource.grantPrincipal);
 
-    // new appsync.Resolver(this, 'pipeline-resolver-create-note', {
-    //   api,
-    //   typeName: 'Mutation',
-    //   fieldName: 'createNote',
-    //   code: appsync.Code.fromAsset('src/resolvers/createUpdateNoteResolver.js'),
-    //   runtime: appsync.FunctionRuntime.JS_1_0_0,
-    //   pipelineConfig: [createUpdateNoteFunction],
-    // });
+    new appsync.Resolver(this, 'pipeline-resolver-create-note', {
+      api,
+      typeName: 'Mutation',
+      fieldName: 'createNote',
+      code: appsync.Code.fromAsset('src/resolvers/createUpdateNoteResolver.js'),
+      runtime: appsync.FunctionRuntime.JS_1_0_0,
+      pipelineConfig: [createUpdateNoteFunction],
+    });
 
     new appsync.Resolver(this, 'pipeline-resolver-update-note', {
       api,

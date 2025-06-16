@@ -11,6 +11,8 @@ export class AwsCdkLearningStack extends cdk.Stack {
     super(scope, id, props);
     const region = cdk.Stack.of(this).region
 
+    const sqsEndpoint = `https://sqs.${region}.amazonaws.com/`;
+
     // Define an appsync api
     const api = new appsync.GraphqlApi(this, 'MyNoteApp', {
       name: 'my-note-app',
@@ -61,7 +63,7 @@ export class AwsCdkLearningStack extends cdk.Stack {
       retentionPeriod: cdk.Duration.days(4),
     });
 
-    const createUpdateNoteDataSource = api.addHttpDataSource('create-update-note-ds', createUpdateNoteSqs.queueUrl, {
+    const createUpdateNoteDataSource = api.addHttpDataSource('create-update-note-ds', sqsEndpoint, {
       authorizationConfig: {
         signingRegion: region,
         signingServiceName: 'sqs',

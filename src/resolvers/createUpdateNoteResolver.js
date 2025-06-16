@@ -1,10 +1,7 @@
 import { util } from "@aws-appsync/utils";
 
-const queueName = 'create-update-note-sqs.fifo';
-const accountId = '308785150945';
-
 export function request(ctx) {
-  const { args } = ctx;
+  const { args, env } = ctx;
   const message = {
     title: args.title,
     content: args.content,
@@ -20,7 +17,7 @@ export function request(ctx) {
   return {
     version: "2018-05-29",
     method: "POST",
-    resourcePath:  `/${accountId}/${queueName}`,
+    resourcePath: `/${env?.ACCOUNT_ID}/${env?.QUEUE_NAME}`,
     params: {
       headers: {
         "content-type": "application/x-www-form-urlencoded",

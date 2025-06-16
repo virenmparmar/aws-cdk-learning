@@ -11,8 +11,8 @@ export class AwsCdkLearningStack extends cdk.Stack {
     super(scope, id, props);
     const region = cdk.Stack.of(this).region
 
-    const sqsEndpoint = `https://sqs.${region}.amazonaws.com/`;
-
+    const SQS_ENDPOINT = `https://sqs.${region}.amazonaws.com/`;
+    const QUEUE_NAME = 'create-update-note-sqs.fifo';
     // Define an appsync api
     const api = new appsync.GraphqlApi(this, 'MyNoteApp', {
       name: 'my-note-app',
@@ -28,6 +28,10 @@ export class AwsCdkLearningStack extends cdk.Stack {
         fieldLogLevel: appsync.FieldLogLevel.ALL,
         excludeVerboseContent: false,
       },
+      environmentVariables: {
+        QUEUE_NAME: QUEUE_NAME,
+        ACCOUNT_ID: cdk.Stack.of(this).account,
+      }
     });
 
     // create a DynamoDB Table  
@@ -56,14 +60,14 @@ export class AwsCdkLearningStack extends cdk.Stack {
     })
 
     const createUpdateNoteSqs = new sqs.Queue(this, 'CreateupdateNoteSqs', {
-      queueName: 'create-update-note-sqs.fifo',
+      queueName: QUEUE_NAME,
       fifo: true,
       contentBasedDeduplication: true,
       visibilityTimeout: cdk.Duration.seconds(30),
       retentionPeriod: cdk.Duration.days(4),
     });
 
-    const createUpdateNoteDataSource = api.addHttpDataSource('create-update-note-ds', sqsEndpoint, {
+    const createUpdateNoteDataSource = api.addHttpDataSource('create-update-note-ds', SQS_ENDPOINT, {
       authorizationConfig: {
         signingRegion: region,
         signingServiceName: 'sqs',

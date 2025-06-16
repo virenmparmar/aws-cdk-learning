@@ -8,8 +8,8 @@ type Query {
   getNotes: [Note]
 }
 type Mutation {
-  createNote(title: String!, content: String!): status: String!
-  updateNote(id: ID!, title: String, content: String): status: String!
+  createNote(title: String!, content: String!): response
+  updateNote(id: ID!, title: String, content: String): response
 }
 type Note {
   id: ID!
@@ -17,4 +17,8 @@ type Note {
   content: String!
   createdAt: String!
   updatedAt: String!
+}
+
+type response {
+  status: String!
 }

@@ -28,6 +28,14 @@ export function request(ctx) {
 }
 
 export function response(ctx) {
-  console.log("Response from SQS:", ctx.result);
-  return {};
+  const { result } = ctx;
+  if (result && result.statusCode === 200) {
+    return {
+      status: "Success",
+    };
+  } else {
+    return {
+      status: "Failed",
+    };
+  }
 }

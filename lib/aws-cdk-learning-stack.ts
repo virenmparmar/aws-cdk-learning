@@ -42,10 +42,12 @@ export class AwsCdkLearningStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
+    const notesTableDataSource = api.addDynamoDbDataSource('notes-table-ds', notesTable);
+
     const getNoteFunction = new appsync.AppsyncFunction(this, 'getNoteResolver', {
       name: 'getNoteResolver',
       api,
-      dataSource: api.addDynamoDbDataSource('note-table-ds', notesTable),
+      dataSource: notesTableDataSource,
       code: appsync.Code.fromAsset('src/resolvers/build/getNoteResolver.js'),
       runtime: appsync.FunctionRuntime.JS_1_0_0,
     });
@@ -82,6 +84,22 @@ export class AwsCdkLearningStack extends cdk.Stack {
       runtime: appsync.FunctionRuntime.JS_1_0_0,
     });
 
+    const getAllNotesFunction = new appsync.AppsyncFunction(this, 'getAllNotesResolver', {
+      name: 'getAllNotesResolver',
+      api,
+      dataSource: notesTableDataSource,
+      code: appsync.Code.fromAsset('src/resolvers/build/getAllNotesResolver.js'),
+      runtime: appsync.FunctionRuntime.JS_1_0_0,
+    });
+
+    new appsync.Resolver(this, 'pipeline-resolver-get-all-notes', {
+      api,
+      typeName: 'Query',
+      fieldName: 'getNotes',
+      code: appsync.Code.fromAsset('src/resolvers/build/pipelineResolver.js'),
+      runtime: appsync.FunctionRuntime.JS_1_0_0,
+      pipelineConfig: [getAllNotesFunction],
+    });
     createUpdateNoteDataSource.node.addDependency(createUpdateNoteSqs);
     createUpdateNoteSqs.grantSendMessages(createUpdateNoteDataSource.grantPrincipal);
 
